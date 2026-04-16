@@ -1,104 +1,63 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+package com.library;
 
-    <modelVersion>4.0.0</modelVersion>
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-    <!-- ===================== Project Identity ===================== -->
-    <groupId>com.library</groupId>
-    <artifactId>library-management-system</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+public class AppTest {
 
-    <name>Library Management System</name>
-    <description>
-        A Maven-based Library Management System that allows users to borrow
-        books, tracks borrowing duration, and computes late fines.
-    </description>
+    // Test 1: No fine when returned on time
+    @Test
+    public void testNoFine() {
+        double fine = App.calculateFine(10);
+        assertEquals(0.0, fine, 0.001);
+    }
 
-    <!-- ===================== Properties ===================== -->
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>4.13.2</junit.version>
-        <maven.surefire.version>3.0.0</maven.surefire.version>
-        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
-        <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
-    </properties>
+    // Test 2: No fine at exactly 14 days (boundary)
+    @Test
+    public void testNoFineAtLimit() {
+        double fine = App.calculateFine(14);
+        assertEquals(0.0, fine, 0.001);
+    }
 
-    <!-- ===================== Dependencies ===================== -->
-    <dependencies>
+    // Test 3: Fine for 1 extra day (15 - 14 = 1 day * 2.0 = 2.0)
+    @Test
+    public void testFineOneExtraDay() {
+        double fine = App.calculateFine(15);
+        assertEquals(2.0, fine, 0.001);
+    }
 
-        <!-- JUnit 4 for unit testing -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
+    // Test 4: Fine for 5 extra days (19 - 14 = 5 days * 2.0 = 10.0)
+    @Test
+    public void testFineFiveExtraDays() {
+        double fine = App.calculateFine(19);
+        assertEquals(10.0, fine, 0.001);
+    }
 
-    </dependencies>
+    // Test 5: Status is ON TIME
+    @Test
+    public void testStatusOnTime() {
+        String status = App.getBorrowingStatus(7);
+        assertEquals("ON TIME", status);
+    }
 
-    <!-- ===================== Build Configuration ===================== -->
-    <build>
-        <plugins>
+    // Test 6: Status is OVERDUE
+    @Test
+    public void testStatusOverdue() {
+        String status = App.getBorrowingStatus(20);
+        assertEquals("OVERDUE", status);
+    }
 
-            <!-- Compiler Plugin: enforce Java 11 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.plugin.version}</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
+    // Test 7: Fine is never negative
+    @Test
+    public void testFineNotNegative() {
+        double fine = App.calculateFine(5);
+        assertTrue(fine >= 0);
+    }
 
-            <!-- Surefire Plugin: run JUnit tests and generate reports -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven.surefire.version}</version>
-                <configuration>
-                    <!-- Fail build if no tests found -->
-                    <failIfNoTests>true</failIfNoTests>
-                    <!-- Generate XML reports for Jenkins JUnit publisher -->
-                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
-                </configuration>
-            </plugin>
-
-            <!-- JAR Plugin: produce an executable JAR with Main-Class manifest -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven.jar.plugin.version}</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.library.App</mainClass>
-                        </manifest>
-                    </archive>
-                    <finalName>library-management-system</finalName>
-                </configuration>
-            </plugin>
-
-        </plugins>
-    </build>
-
-    <!-- ===================== Reporting ===================== -->
-    <reporting>
-        <plugins>
-            <!-- Surefire Report: HTML test report via mvn site -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>${maven.surefire.version}</version>
-            </plugin>
-        </plugins>
-    </reporting>
-
-</project>
+    // Test 8: Fine is greater than zero when overdue
+    @Test
+    public void testFineIsPositiveWhenOverdue() {
+        double fine = App.calculateFine(16);
+        assertTrue(fine > 0);
+    }
+}
