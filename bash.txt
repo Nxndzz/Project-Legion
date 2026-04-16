@@ -1,0 +1,11 @@
+# Build
+mvn clean compile
+
+# Run tests
+mvn test
+
+# Package into JAR
+mvn package
+
+# Run the app
+java -jar target/library-management-system.jar
