@@ -1,0 +1,80 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven'   // Name configured in Jenkins > Global Tool Configuration
+        jdk   'JDK11'   // JDK 11 configured in Jenkins
+    }
+
+    environment {
+        APP_NAME = 'library-management-system'
+        JAR_NAME = 'library-management-system.jar'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo '>>> Cloning repository from GitHub...'
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo '>>> Compiling source code with Maven...'
+                sh 'mvn clean compile -B'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo '>>> Running JUnit tests...'
+                sh 'mvn test -B'
+            }
+            post {
+                always {
+                    // Publish JUnit XML test results in Jenkins UI
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                echo '>>> Packaging application into JAR...'
+                sh 'mvn package -DskipTests -B'
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: "target/${JAR_NAME}", fingerprint: true
+                    echo ">>> Artifact archived: target/${JAR_NAME}"
+                }
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                echo '>>> Verifying the packaged JAR exists...'
+                sh "test -f target/${JAR_NAME} && echo 'JAR found: OK' || (echo 'JAR NOT FOUND!' && exit 1)"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "=========================================="
+            echo " BUILD SUCCEEDED: ${APP_NAME}"
+            echo "=========================================="
+        }
+        failure {
+            echo "=========================================="
+            echo " BUILD FAILED: ${APP_NAME}"
+            echo "=========================================="
+        }
+        always {
+            echo '>>> Cleaning workspace...'
+            cleanWs()
+        }
+    }
+}
