@@ -1,0 +1,119 @@
+student-k8s-demo/ app.py requirements.txt test_app.py Dockerfile .dockerignore .gitignore k8s/ deployment.yaml service.yaml .github/ workflows/ pipeline.yml
+
+Create app.py 
+from flask import Flask, jsonify 
+app = Flask(__name__) 
+@app.route("/") 
+def home():    
+  return "Hello Students! Kubernetes CI/CD is working!" 
+@app.route("/health") 
+def health():
+  return jsonify(status="healthy"), 200 
+
+if __name__ == "__main__":    
+  app.run(host="0.0.0.0", port=5000)
+
+Create requirements.txt 
+  Flask>=3.0,<4.0 
+  pytest>=8.0,<9.0
+
+Create test_app.py 
+from app import app 
+def test_home_page():    
+  client = app.test_client()    
+  response = client.get("/")    
+  assert response.status_code == 200    
+  assert b"Kubernetes CI/CD is working" in response.data 
+
+def test_health_endpoint():    
+  client = app.test_client()    
+  response = client.get("/health")    
+  assert response.status_code == 200    
+  assert response.json["status"] == "healthy"
+
+
+
+Run locally :
+
+python -m venv .venv 
+# Windows PowerShell: 
+.\.venv\Scripts\Activate.ps1 
+# Git Bash alternative: 
+# source .venv/Scripts/activate 
+python -m pip install -r requirements.txt 
+python -m pytest -v 
+python app.py
+
+1. Install the packages: .\.venv\Scripts\python.exe -m pip install -r requirements.txt 
+2. Run the automated tests: .\.venv\Scripts\python.exe -m pytest -v Expected result: both tests pass. If a test fails, read the error message and check app.py and test_app.py. 
+3. Start the Flask application: .\.venv\Scripts\python.exe app.py Keep this terminal open while testing. Open these addresses in a browser: Home page:     http://127.0.0.1:5000/ Health check:   http://127.0.0.1:5000/health
+
+
+Dockerfile 
+
+FROM python:3.12-slim 
+
+WORKDIR /app COPY requirements.txt . 
+RUN pip install --no-cache-dir -r requirements.txt 
+COPY app.py . 
+EXPOSE 5000 
+CMD ["python", "app.py"]
+
+ .dockerignore 
+.venv/ 
+__pycache__/ 
+.pytest_cache/ 
+.git/
+
+Build the image : docker build -t student-k8s-demo:v1 . 
+                  docker images
+
+Run and test the container: 
+
+docker run --rm -d --name student-demo -p 5000:5000 student-k8s-demo:v1 
+docker ps 
+docker logs student-demo
+
+.gitignore 
+.venv/ 
+__pycache__/ 
+.pytest_cache/ 
+.env
+
+git init Page 4 Kubernetes CI/CD Beginner Lab Guide
+git add . 
+git commit -m "Initial Flask application and Docker setup" 
+git branch -M main 
+git remote add origin https://github.com/YOUR_USERNAME/student-k8s-demo.git 
+git push -u origin main
+
+.github/workflows/pipeline.yml 
+name: Student Kubernetes CI/CD 
+on:  
+  push:    
+    branches: [main]  
+  pull_request:    
+    branches: [main] 
+  
+  permissions:  
+    contents: read 
+  jobs: 
+    test:    
+      name: Checkout and Test   
+      runs-on: ubuntu-latest    
+    
+      steps:     
+        - name: Checkout source code       
+          uses: actions/checkout@v4     
+        - name: Set up Python       
+          uses: actions/setup-python@v5       
+          with:          
+            python-version: "3.12"     
+        - name: Install dependencies        
+          run: |          
+              python -m pip install --upgrade pip          
+              pip install -r requirements.txt      
+        - name: Run automated tests       
+          run: python -m pytest -v
+
+Commit and push the workflow git add . git commit -m "Add automated CI tests" git push
