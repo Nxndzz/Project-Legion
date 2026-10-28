@@ -117,3 +117,118 @@ on:
           run: python -m pytest -v
 
 Commit and push the workflow git add . git commit -m "Add automated CI tests" git push
+
+
+
+Create a Docker Hub repository 
+1 Sign in to Docker Hub and create a repository named student-k8s-demo. 
+2 Make it Public for this introductory lab so the local cluster can pull it without registry credentials. 
+3 Create an access token with the minimum permissions needed to push the image.
+Add GitHub repository secrets In GitHub, open Settings → Secrets and variables → Actions → New repository secret. 
+Add: Secret name Value DOCKERHUB_USERNAME DOCKERHUB_TOKEN Docker Hub username Docker Hub access token
+
+
+Replace pipeline.yml with this workflow name: 
+Student Kubernetes CI/CD 
+on:  
+  push:    
+    branches: [main] 
+  pull_request:    
+    branches: [main] 
+  permissions:  
+    contents: read 
+  jobs:  
+    test:   
+      name: Checkout and Test   
+      runs-on: ubuntu-latest    
+      steps:      
+        - name: Checkout source code       
+          uses: actions/checkout@v4     
+        - name: Set up Python        
+          uses: actions/setup-python@v5       
+          with:          
+            python-version: "3.12"     
+        - name: Install dependencies       
+          run: |         
+            python -m pip install --upgrade pip         
+            pip install -r requirements.txt      
+        - name: Run tests        
+          run: python -m pytest -v 
+
+      docker:    
+        name: Build and Push Docker Image   
+        needs: test    
+        if: github.event_name == 'push'    
+        runs-on: ubuntu-latest   
+        steps:     
+          - name: Checkout source code       
+            uses: actions/checkout@v4      
+          - name: Set up Docker Buildx       
+            uses: docker/setup-buildx-action@v3      
+          - name: Login to Docker Hub        
+            uses: docker/login-action@v3        
+            with:          
+              username: ${{ secrets.DOCKERHUB_USERNAME }}         
+              password: ${{ secrets.DOCKERHUB_TOKEN }}      
+          - name: Build and push image        
+            uses: docker/build-push-action@v6        
+            with:         
+              context: .          
+              push: true         
+              tags: ${{ secrets.DOCKERHUB_USERNAME }}/student-k8s-demo:${{ github.sha }}
+
+
+git add .github/workflows/pipeline.yml 
+git commit -m "Add Docker build and publish stage" git push
+
+Create k8s/deployment.yaml 
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:  
+  name: student-k8s-demo 
+spec:  
+  replicas: 2  
+  selector:    
+    matchLabels:      
+      app: student-k8s-demo  
+  template:    
+    metadata:      
+      labels:        
+        app: student-k8s-demo   
+    spec:      
+      containers:        
+        - name: student-k8s-demo         
+          image: YOUR_DOCKERHUB_USERNAME/student-k8s-demo:REPLACE_WITH_COMMIT_SHA        
+          ports:            
+            - containerPort: 5000          
+          readinessProbe:            
+            httpGet:              
+              path: /health             
+              port: 5000            
+              initialDelaySeconds: 5           
+              periodSeconds: 5
+
+
+ k8s/service.yaml 
+apiVersion: v1 
+kind: Service 
+  metadata:  
+    name: student-k8s-demo 
+  spec:  
+    type: NodePort  
+      selector:    
+        app: student-k8s-demo  
+      ports:    
+        - port: 80      
+          targetPort: 5000     
+          nodePort: 30080
+
+Apply the resources 
+kubectl config current-context 
+kubectl get nodes 
+kubectl apply -f k8s/deployment.yaml 
+kubectl apply -f k8s/service.yaml 
+kubectl rollout status deployment/student-k8s-demo 
+kubectl get deployments 
+kubectl get pods 
+kubectl get services
