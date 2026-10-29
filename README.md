@@ -19,3 +19,5 @@ after modifying the application, Push 2 must trigger a new pipeline run and depl
 
 service.yaml
 deployment.yaml
+
+ok done 3mins wait
