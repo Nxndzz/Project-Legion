@@ -16,6 +16,6 @@ automated tests.
 after modifying the application, Push 2 must trigger a new pipeline run and deploy the updated version.
 • Use a unique Docker image tag for each push. The deployment must use the image built from that push.
 
-what all codes is required?
-yaml , .py?
-daaaaa what all file names u neeed
+
+service.yaml
+deployment.yaml
