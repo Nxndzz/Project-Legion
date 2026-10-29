@@ -1,0 +1,11 @@
+do this in vs code
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m pytest -v
+python app.py
+
+
+docker test:
+docker build -t student-k8s-demo:v1 .
+docker run --rm -p 5000:5000 student-k8s-demo:v1
