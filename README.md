@@ -18,3 +18,4 @@ after modifying the application, Push 2 must trigger a new pipeline run and depl
 
 what all codes is required?
 yaml , .py?
+daaaaa what all file names u neeed
