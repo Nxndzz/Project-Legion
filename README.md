@@ -15,3 +15,6 @@ automated tests.
 • Make exactly two source-code pushes from VS Code to GitHub. Push 1 must trigger the first deployment;
 after modifying the application, Push 2 must trigger a new pipeline run and deploy the updated version.
 • Use a unique Docker image tag for each push. The deployment must use the image built from that push.
+
+what all codes is required?
+yaml , .py?
