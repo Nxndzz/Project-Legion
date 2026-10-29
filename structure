@@ -1,0 +1,11 @@
+student-k8s-demo/
+├── app.py
+├── requirements.txt
+├── test_app.py
+├── Dockerfile
+├── Jenkinsfile
+└── k8s/
+    ├── deployment.yaml
+    └── service.yaml
+
+follow this order
