@@ -232,3 +232,16 @@ kubectl rollout status deployment/student-k8s-demo
 kubectl get deployments 
 kubectl get pods 
 kubectl get services
+
+
+Change the application
+Change the return statement in app.py to:  return "Version 2: Updated through CI/CD!"
+Commit and push the change:
+git add .
+git commit -m "Update application message"
+git push
+After GitHub Actions passes, copy the new commit SHA and update the Deployment to use the new
+image tag:
+kubectl set image deployment/student-k8s-demo student-k8s-demo=YOUR_DOCKERHUB_USERNAME/student-k8s-demo:NEW_COMMIT_SHA
+kubectl rollout status deployment/student-k8s-demo
+kubectl get pods
