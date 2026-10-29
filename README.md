@@ -17,7 +17,4 @@ after modifying the application, Push 2 must trigger a new pipeline run and depl
 • Use a unique Docker image tag for each push. The deployment must use the image built from that push.
 
 
-service.yaml
-deployment.yaml
-
-ok done 3mins wait
+check structure and do
